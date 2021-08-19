@@ -8,16 +8,16 @@ use std::str;
 use std::str::Utf8Error;
 use super::method::MethodError;
 
-pub struct Request {
-    path: String,
-    query_string: Option<String>,
+pub struct Request<'buf> {
+    path: &'buf str,
+    query_string: Option<&'buf str>,
     method: Method
 }
 
-impl TryFrom<&[u8]> for Request {
+impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
     type Error = ParseError;
 
-    fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
+    fn try_from(buf: &'buf [u8]) -> Result<Self, Self::Error> {
         let request = str::from_utf8(buf)?;
         let (method, request) = get_next_word(request).ok_or(ParseError::InvalidRequestError)?;
         let (mut path, request) = get_next_word(request).ok_or(ParseError::InvalidRequestError)?;
@@ -36,7 +36,11 @@ impl TryFrom<&[u8]> for Request {
             path = &path[..i]; 
         }
 
-        unimplemented!();
+        Ok(Self {
+            path,
+            query_string,
+            method
+        })
     }
 
 
@@ -60,7 +64,7 @@ impl From<Utf8Error> for ParseError {
 }
 
 impl From<MethodError> for ParseError {
-    fn from(_: Utf8Error) -> Self {
+    fn from(_: MethodError) -> Self {
         Self::InvalidMethodError
     }
 }
