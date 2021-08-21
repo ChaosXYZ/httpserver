@@ -21,8 +21,8 @@ impl<'buf> From<&'buf str> for QueryString<'buf>{
         let mut data = HashMap::new();
 
         for sub_str in s.split('&'){
-            let key = sub_str;
-            let value = "";
+            let mut key = sub_str;
+            let mut value = "";
             if let Some(i) = sub_str.find('=') {
                 key = &sub_str[..i];
                 value = &sub_str[i+1..];
